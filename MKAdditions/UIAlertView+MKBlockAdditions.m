@@ -11,11 +11,21 @@
 
 static char DISMISS_IDENTIFER;
 static char CANCEL_IDENTIFER;
+static char TITLE_IDENTIFIER;
 
 @implementation UIAlertView (Block)
 
 @dynamic cancelBlock;
 @dynamic dismissBlock;
+@dynamic buttonTitleBlock;
+
+- (void)setButtonTitleBlock:(ButtonTitleDismissBlock)buttonTitleBlock {
+    objc_setAssociatedObject(self, &TITLE_IDENTIFIER, buttonTitleBlock, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+- (ButtonTitleDismissBlock)buttonTitleBlock {
+    return objc_getAssociatedObject(self, &TITLE_IDENTIFIER);
+}
 
 - (void)setDismissBlock:(DismissBlock)dismissBlock
 {
@@ -42,7 +52,7 @@ static char CANCEL_IDENTIFER;
                     message:(NSString*) message 
           cancelButtonTitle:(NSString*) cancelButtonTitle
           otherButtonTitles:(NSArray*) otherButtons
-                  onDismiss:(DismissBlock) dismissed                   
+                  onDismiss:(DismissBlock) dismissed
                    onCancel:(CancelBlock) cancelled {
         
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
@@ -60,6 +70,28 @@ static char CANCEL_IDENTIFER;
     [alert show];
     return alert;
 }
+
++ (UIAlertView*) alertViewWithTitle:(NSString*) title
+                  otherButtonTitles:(NSArray*) otherButtons
+                      buttonDismiss:(ButtonTitleDismissBlock) dismissed
+                           onCancel:(CancelBlock) cancelled {
+    
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                    message:nil
+                                                   delegate:[self class]
+                                          cancelButtonTitle:NSLocalizedString(@"Dismiss", @"")
+                                          otherButtonTitles:nil];
+    
+    [alert setButtonTitleBlock:dismissed];
+    [alert setCancelBlock:cancelled];
+    
+    for(NSString *buttonTitle in otherButtons)
+        [alert addButtonWithTitle:buttonTitle];
+    
+    [alert show];
+    return alert;
+}
+
 
 + (UIAlertView*) alertViewWithTitle:(NSString*) title 
                     message:(NSString*) message {
@@ -92,8 +124,12 @@ static char CANCEL_IDENTIFER;
 	}
     else
     {
+        if (alertView.buttonTitleBlock) {
+            NSString *titleForButton = [alertView buttonTitleAtIndex:buttonIndex];
+            alertView.buttonTitleBlock(buttonIndex - 1,titleForButton); // cancel button is button 0
+        }
         if (alertView.dismissBlock) {
-            alertView.dismissBlock(buttonIndex - 1); // cancel button is button 0
+            alertView.dismissBlock(buttonIndex - 1);
         }
     }
 }

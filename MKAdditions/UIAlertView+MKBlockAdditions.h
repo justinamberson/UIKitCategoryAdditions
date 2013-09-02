@@ -9,7 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "MKBlockAdditions.h"
 
-@interface UIAlertView (Block) <UIAlertViewDelegate> 
+@interface UIAlertView (Block) <UIAlertViewDelegate>
+
 + (UIAlertView*) alertViewWithTitle:(NSString*) title 
                             message:(NSString*) message;
 
@@ -21,10 +22,16 @@
                             message:(NSString*) message 
                   cancelButtonTitle:(NSString*) cancelButtonTitle
                   otherButtonTitles:(NSArray*) otherButtons
-                          onDismiss:(DismissBlock) dismissed                   
+                          onDismiss:(DismissBlock) dismissed
+                           onCancel:(CancelBlock) cancelled;
+
++ (UIAlertView*) alertViewWithTitle:(NSString*) title
+                  otherButtonTitles:(NSArray*) otherButtons
+                          buttonDismiss:(ButtonTitleDismissBlock) dismissed
                            onCancel:(CancelBlock) cancelled;
 
 @property (nonatomic, copy) DismissBlock dismissBlock;
+@property (nonatomic, copy) ButtonTitleDismissBlock buttonTitleBlock;
 @property (nonatomic, copy) CancelBlock cancelBlock;
 
 @end
